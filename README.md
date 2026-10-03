@@ -1,6 +1,6 @@
 # SidePanelApp
 
-WinForms-приложение (.NET Framework 4.8.1): узкая панель у правого края экрана с метриками системы, мониторингом удалённого доступа к ПК и (в V6) окном сетевых подключений.
+WinForms-приложение (.NET Framework 4.8.1): узкая панель у края экрана с метриками системы, мониторингом удалённого доступа к ПК и (в V6) окном сетевых подключений. Панель можно прилепить к левому или правому краю; выноски открываются с внутренней стороны.
 
 **Актуальная версия для использования:** `SidePanelApp.V6` (трей, автозапуск, одна копия V1–V6 на машине).
 
@@ -43,9 +43,9 @@ cd X:\Project\SidePanelApp\SidePanelApp
 | Документ | Содержание |
 |----------|------------|
 | [docs/README.md](docs/README.md) | Оглавление |
-| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | Версии проектов, устройство V6, общий код, иконка |
+| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | Версии проектов, устройство V6, край панели и клюв попапа, иконка |
 | [docs/THREAT_MONITOR.md](docs/THREAT_MONITOR.md) | Каналы «удалёнка / SMB / попытки входа», настройки |
-| [docs/CONNECTIONS.md](docs/CONNECTIONS.md) | Окно Connections, Npcap для захвата пакетов |
+| [docs/CONNECTIONS.md](docs/CONNECTIONS.md) | Окно Connections: таблица, ping/trace, закрытие TCP, Npcap |
 
 ## Версии в solution
 
@@ -56,6 +56,6 @@ cd X:\Project\SidePanelApp\SidePanelApp
 | V3 | Запуск из трея |
 | V4 | GPU, сеть, детальные попапы |
 | V5 | Пятое кольцо — мониторинг доступа к АРМ |
-| **V6** | Фоновый сбор угроз, EventLogWatcher, Connections, Npcap |
+| **V6** | Фон угроз, прилипание панели к краю, Connections (пакеты, ping, закрытие TCP) |
 
 Старые V2–V5 оставлены для сравнения; в эксплуатации ориентируйтесь на V6.

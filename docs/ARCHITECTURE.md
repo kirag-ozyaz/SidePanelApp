@@ -2,7 +2,7 @@
 
 ## Назначение
 
-Боковая панель справа на рабочем столе Windows: кольцевые индикаторы CPU, RAM, GPU, сети; в V5+ — охранное кольцо по удалённому доступу; в V6 — отдельное окно сетевых подключений и захват пакетов (с Npcap).
+Боковая панель на рабочем столе Windows (по умолчанию справа, в V6 можно прилепить к левому или правому краю): кольцевые индикаторы CPU, RAM, GPU, сети; в V5+ — охранное кольцо по удалённому доступу; в V6 — отдельное окно сетевых подключений и захват пакетов (с Npcap).
 
 Стек: **.NET Framework 4.8.1**, **WinForms**, сбор метрик через `PerformanceCounter`, WMI, WTS, TCP tables, журнал Security (где доступен).
 
@@ -25,11 +25,24 @@
 ### Точка входа и трей
 
 - `Program.cs` → `Application.Run(new TrayAppContext())`.
-- `TrayAppContext` — иконка в трее, меню (показать панель, автозапуск Windows, показ при старте, перемещение панели), создаёт `OverlayPanelV6` и `ThreatBackgroundService`.
+- `TrayAppContext` — иконка в трее, меню (показать панель, автозапуск Windows, показ при старте, перемещение панели, соединения), создаёт `OverlayPanelV6` и `ThreatBackgroundService`. ЛКМ по иконке показывает или скрывает панель.
 
 ### Панель
 
-- `OverlayPanelV6` — узкая форма у правого края; кольца метрик и `ThreatRingIndicator`; таймер UI (~1 с) читает снимок метрик и `GetLatestSnapshot()` от службы угроз (тяжёлая работа не на UI-потоке).
+- `OverlayPanelV6` — узкая форма; кольца метрик и `ThreatRingIndicator`. Таймер UI (~1 с) ставит сбор в фон (`Hardware/*MetricsCollector` + `GetLatestSnapshot()` угроз) и применяет снимок на UI-потоке.
+- Старт и режим без перемещения: панель у **правого** края, скругление слева (`CreateLeftRoundedRect`).
+- С включённым «Разрешить перемещение панели» во время drag форма магнитится к краю, если до него ≤ 32 px (`EdgeSnapDistance`); после отпускания — к ближайшему вертикальному краю рабочей области (`SnapPanelToEdge`). У правого края скругление слева, у левого — справа (`CreateRightRoundedRect`). По вертикали позиция сохраняется, с ограничением экраном.
+
+### Выноски колец
+
+Hover/клик открывает попап рядом с кольцом. Сторона выбирается по тому, к какому краю ближе панель (`IndicatorPopupAlignment.ResolveTailSide`):
+
+| Панель | Попап | Клюв (`CalloutTailSide`) |
+|--------|-------|--------------------------|
+| Справа | Слева от панели | Справа (`Right`), контур `CreateCalloutPathTailRight` |
+| Слева | Справа от панели | Слева (`Left`): тот же контур, отражённый по X |
+
+После прилипания видимые попапы переставляются (`RepositionVisibleDetailPopups`). Контент карточек (CPU, RAM, устройства, угрозы) сдвигается на ширину клюва через `CalloutContentBounds`.
 
 ### Мониторинг АРМ
 
@@ -52,19 +65,23 @@
 
 Отдельная форма `ConnectionsForm` — таблица соединений, фильтры, детали, HEX/ASCII по пакетам при установленном Npcap. См. [CONNECTIONS.md](./CONNECTIONS.md).
 
-## UI-паттерн (V2+, актуален для колец метрик)
+## UI-паттерн (V2+, для V6 — схема ниже)
 
 ```
-TrayAppContext / MainForm
+TrayAppContext
         │
         ▼
-OverlayPanelV*  ──► RingIndicatorControl × N
-        │              hover/click → MetricDetailPopup
-        ├── PanelColors (геометрия, палитра)
-        └── SystemMetricsProvider (1 с)
+OverlayPanelV6  ──► RingIndicatorControl × N, ThreatRingIndicator
+        │              hover/click → *DetailPopup
+        │                              └── IndicatorPopupAlignment (сторона и клюв)
+        ├── PanelColors (палитра, скругление панели, контур клюва)
+        ├── Hardware/*MetricsCollector (фон, ~1 с)
+        └── ThreatBackgroundService.GetLatestSnapshot()
 ```
 
-Расширение новой метрики: добавить `RingIndicatorControl` в designer, подключить источник в тикере панели.
+В V1–V4 метрики идут через общий `SystemMetricsProvider`. В V6 сбор свой: `Hardware/`.
+
+Расширение новой метрики: `RingIndicatorControl` в designer, коллектор в `CollectMetricsBundle`, попап с `TailSide`.
 
 ## Иконка приложения
 
@@ -95,7 +112,7 @@ Solution: `SidePanelApp/SidePanelApp.sln`. Стартовый проект дл�
 | Закрепление / открепление панели | ✅ `AllowPanelMove` |
 | Hover → выноска с баром ресурса | ✅ |
 | Закруглённые края панели | ✅ |
-| Прилипание к краю при перетаскивании | ✅ V6 |
+| Прилипание к левому или правому краю, клюв попапа в сторону панели | ✅ V6 |
 | Метрика сети | ✅ V4+ |
 | CPU по ядрам в выноске | ✅ V4+ |
 | Кто подключился к АРМ | ✅ V5/V6 — [THREAT_MONITOR.md](./THREAT_MONITOR.md) |
