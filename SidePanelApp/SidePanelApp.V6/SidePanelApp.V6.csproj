@@ -1,0 +1,210 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{B2C3D4E5-F6A7-8901-BCDE-F23456789012}</ProjectGuid>
+    <OutputType>WinExe</OutputType>
+    <RootNamespace>SidePanelApp.V6</RootNamespace>
+    <AssemblyName>SidePanelApp.V6</AssemblyName>
+    <TargetFrameworkVersion>v4.8.1</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <Deterministic>true</Deterministic>
+    <ApplicationIcon>..\Assets\app.ico</ApplicationIcon>
+    <ApplicationManifest>Properties\app.manifest</ApplicationManifest>
+    <RestoreProjectStyle>PackageReference</RestoreProjectStyle>
+    <NuGetPackageImportStamp>
+    </NuGetPackageImportStamp>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>x64</PlatformTarget>
+    <Prefer32Bit>false</Prefer32Bit>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>x64</PlatformTarget>
+    <Prefer32Bit>false</Prefer32Bit>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Configuration" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Management" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="Microsoft.VisualBasic" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Controls\CalloutTailSide.cs" />
+    <Compile Include="Controls\IndicatorPopupAlignment.cs" />
+    <Compile Include="Controls\CpuDetailControl.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Controls\CpuDetailControl.Designer.cs">
+      <DependentUpon>CpuDetailControl.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Controls\DetailPopupFormBase.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Controls\CpuDetailPopup.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Controls\CpuDetailPopup.Designer.cs">
+      <DependentUpon>CpuDetailPopup.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Controls\DeviceListDetailControl.cs" />
+    <Compile Include="Controls\DeviceListDetailControl.Designer.cs">
+      <DependentUpon>DeviceListDetailControl.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Controls\DeviceListPopup.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Controls\DeviceListPopup.Designer.cs">
+      <DependentUpon>DeviceListPopup.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Controls\RamDetailControl.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Controls\RamDetailControl.Designer.cs">
+      <DependentUpon>RamDetailControl.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Controls\RamDetailPopup.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Controls\RamDetailPopup.Designer.cs">
+      <DependentUpon>RamDetailPopup.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Controls\RingIndicatorControl.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Controls\RingIndicatorControl.Designer.cs">
+      <DependentUpon>RingIndicatorControl.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Controls\ThreatDetailControl.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Controls\ThreatDetailControl.Designer.cs">
+      <DependentUpon>ThreatDetailControl.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Controls\ThreatDetailPopup.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Controls\ThreatDetailPopup.Designer.cs">
+      <DependentUpon>ThreatDetailPopup.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Controls\ThreatRingIndicator.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Controls\ThreatRingIndicator.Designer.cs">
+      <DependentUpon>ThreatRingIndicator.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Security\ThreatModels.cs" />
+    <Compile Include="Security\RemoteChannelProbe.cs" />
+    <Compile Include="Security\SmbChannelProbe.cs" />
+    <Compile Include="Security\ProbeChannelProbe.cs" />
+    <Compile Include="Security\ThreatAttentionCollector.cs" />
+    <Compile Include="Security\ThreatBackgroundService.cs" />
+    <Compile Include="Infrastructure\SeriesInstanceGuard.cs" />
+    <Compile Include="Infrastructure\UserStartupHelper.cs" />
+    <Compile Include="Infrastructure\AdminElevationHelper.cs" />
+    <Compile Include="Infrastructure\NpcapInstallHelper.cs" />
+    <Compile Include="Network\ConnectionRow.cs" />
+    <Compile Include="Network\TcpUdpTableReader.cs" />
+    <Compile Include="Network\ConnectionsEnricher.cs" />
+    <Compile Include="Network\TcpConnectionStatsEnricher.cs" />
+    <Compile Include="Network\TcpConnectionCloser.cs" />
+    <Compile Include="Connections\ConnectionToolRunner.cs" />
+    <Compile Include="Connections\ConnectionToolSessionStore.cs" />
+    <Compile Include="Connections\CollapsibleDetailSection.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="Connections\ConnectionPacketStreamMonitor.cs" />
+    <Compile Include="Connections\ConnectionPacketWiresharkView.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Connections\NpcapAvailability.cs" />
+    <Compile Include="Connections\ConnectionPacketRowStore.cs" />
+    <Compile Include="Connections\PacketListRow.cs" />
+    <Compile Include="Connections\PacketListRowFactory.cs" />
+    <Compile Include="Connections\ConnectionTcpPayloadCapture.cs" />
+    <Compile Include="Connections\HexDumpFormatter.cs" />
+    <Compile Include="Network\ProcessIconCache.cs" />
+    <Compile Include="Network\ProcessFileMetadataProvider.cs" />
+    <Compile Include="Connections\ConnectionsWindowHost.cs" />
+    <Compile Include="Connections\ConnectionsGridHelper.cs" />
+    <Compile Include="Connections\TcpConnectionRowStyle.cs" />
+    <Compile Include="Connections\ConnectionRowKey.cs" />
+    <Compile Include="Connections\ConnectionRowVanishTracker.cs" />
+    <Compile Include="Connections\ConnectionsForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Connections\ConnectionsForm.Designer.cs">
+      <DependentUpon>ConnectionsForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Connections\StatCardControl.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Hardware\CpuMetricsCollector.cs" />
+    <Compile Include="Hardware\MemoryMetricsCollector.cs" />
+    <Compile Include="Hardware\GpuMetricsCollector.cs" />
+    <Compile Include="Hardware\MetricFormat.cs" />
+    <Compile Include="Hardware\NetworkMetricsCollector.cs" />
+    <Compile Include="Hardware\PanelMetricsBundle.cs" />
+    <Compile Include="OverlayPanelV6.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="OverlayPanelV6.Designer.cs">
+      <DependentUpon>OverlayPanelV6.cs</DependentUpon>
+    </Compile>
+    <Compile Include="PanelColors.cs" />
+    <Compile Include="Program.cs" />
+    <Compile Include="TrayAppContext.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Properties\Settings.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Settings.settings</DependentUpon>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+    </Compile>
+    <Compile Include="..\SidePanelApp\AppIconFactory.cs">
+      <Link>AppIconFactory.cs</Link>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="App.config" />
+    <EmbeddedResource Include="..\Assets\app.ico">
+      <Link>app.ico</Link>
+    </EmbeddedResource>
+    <None Include="Properties\Settings.settings">
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Installer\README.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="..\..\tools\npcap-1.89.exe" Link="Installer\npcap-1.89.exe">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="PacketDotNet" Version="1.4.7" />
+    <PackageReference Include="SharpPcap" Version="6.3.0" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>

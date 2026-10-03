@@ -1,0 +1,23 @@
+<Project>
+  <!-- Перед сборкой приложений: собрать GenerateAppIcon и создать Assets\app.ico, если файлов нет. -->
+  <Target Name="EnsureAppIcon"
+          BeforeTargets="PrepareForBuild"
+          Condition="'$(MSBuildProjectName)' != 'GenerateAppIcon'">
+    <PropertyGroup>
+      <_SidePanelAppRoot>$(MSBuildThisFileDirectory)</_SidePanelAppRoot>
+      <_AppIconPath>$(_SidePanelAppRoot)Assets\app.ico</_AppIconPath>
+      <_GenerateAppIconProj>$(_SidePanelAppRoot)tools\GenerateAppIcon.csproj</_GenerateAppIconProj>
+      <_GenerateAppIconExe>$(_SidePanelAppRoot)tools\bin\$(Configuration)\GenerateAppIcon.exe</_GenerateAppIconExe>
+      <_NeedGenerateAppIconTool Condition="!Exists('$(_GenerateAppIconExe)')">true</_NeedGenerateAppIconTool>
+      <_NeedAppIconFile Condition="!Exists('$(_AppIconPath)')">true</_NeedAppIconFile>
+    </PropertyGroup>
+
+    <MSBuild Condition="'$(_NeedGenerateAppIconTool)' == 'true' Or '$(_NeedAppIconFile)' == 'true'"
+             Projects="$(_GenerateAppIconProj)"
+             Targets="Build"
+             Properties="Configuration=$(Configuration);Platform=$(Platform)" />
+
+    <Exec Condition="'$(_NeedAppIconFile)' == 'true'"
+          Command="&quot;$(_GenerateAppIconExe)&quot; &quot;$(_AppIconPath)&quot;" />
+  </Target>
+</Project>

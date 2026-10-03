@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{F8E9D0C1-B2A3-4958-9C7D-6E5F4A3B2C1D}</ProjectGuid>
+    <OutputType>WinExe</OutputType>
+    <RootNamespace>SidePanelApp.V5</RootNamespace>
+    <AssemblyName>SidePanelApp.V5</AssemblyName>
+    <TargetFrameworkVersion>v4.8.1</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <Deterministic>true</Deterministic>
+    <ApplicationIcon>..\Assets\app.ico</ApplicationIcon>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Configuration" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Management" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="Microsoft.VisualBasic" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Controls\CpuDetailControl.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Controls\CpuDetailControl.Designer.cs">
+      <DependentUpon>CpuDetailControl.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Controls\CpuDetailPopup.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Controls\CpuDetailPopup.Designer.cs">
+      <DependentUpon>CpuDetailPopup.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Controls\DeviceListDetailControl.cs" />
+    <Compile Include="Controls\DeviceListDetailControl.Designer.cs">
+      <DependentUpon>DeviceListDetailControl.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Controls\DeviceListPopup.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Controls\DeviceListPopup.Designer.cs">
+      <DependentUpon>DeviceListPopup.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Controls\RamDetailControl.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Controls\RamDetailControl.Designer.cs">
+      <DependentUpon>RamDetailControl.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Controls\RamDetailPopup.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Controls\RamDetailPopup.Designer.cs">
+      <DependentUpon>RamDetailPopup.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Controls\RingIndicatorControl.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Controls\RingIndicatorControl.Designer.cs">
+      <DependentUpon>RingIndicatorControl.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Controls\ThreatDetailControl.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Controls\ThreatDetailControl.Designer.cs">
+      <DependentUpon>ThreatDetailControl.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Controls\ThreatDetailPopup.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Controls\ThreatDetailPopup.Designer.cs">
+      <DependentUpon>ThreatDetailPopup.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Controls\ThreatRingIndicator.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Controls\ThreatRingIndicator.Designer.cs">
+      <DependentUpon>ThreatRingIndicator.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Security\ThreatModels.cs" />
+    <Compile Include="Security\RemoteChannelProbe.cs" />
+    <Compile Include="Security\SmbChannelProbe.cs" />
+    <Compile Include="Security\ProbeChannelProbe.cs" />
+    <Compile Include="Security\ThreatAttentionCollector.cs" />
+    <Compile Include="Hardware\CpuMetricsCollector.cs" />
+    <Compile Include="Hardware\MemoryMetricsCollector.cs" />
+    <Compile Include="Hardware\GpuMetricsCollector.cs" />
+    <Compile Include="Hardware\MetricFormat.cs" />
+    <Compile Include="Hardware\NetworkMetricsCollector.cs" />
+    <Compile Include="OverlayPanelV5.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="OverlayPanelV5.Designer.cs">
+      <DependentUpon>OverlayPanelV5.cs</DependentUpon>
+    </Compile>
+    <Compile Include="PanelColors.cs" />
+    <Compile Include="Program.cs" />
+    <Compile Include="TrayAppContext.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Properties\Settings.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Settings.settings</DependentUpon>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+    </Compile>
+    <Compile Include="..\SidePanelApp\AppIconFactory.cs">
+      <Link>AppIconFactory.cs</Link>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="App.config" />
+    <EmbeddedResource Include="..\Assets\app.ico">
+      <Link>app.ico</Link>
+    </EmbeddedResource>
+    <None Include="Properties\Settings.settings">
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
+    </None>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>
