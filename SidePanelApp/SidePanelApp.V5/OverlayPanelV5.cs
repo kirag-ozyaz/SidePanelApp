@@ -276,10 +276,6 @@ namespace SidePanelApp.V5
             var cards = new List<DeviceCardModel>();
             foreach (GpuSnapshot gpu in _gpuSnapshots)
             {
-                string memoryText = gpu.MemoryTotal > 0
-                    ? string.Format("{0} / {1}", MetricFormat.Gigabytes(gpu.MemoryUsed), MetricFormat.Gigabytes(gpu.MemoryTotal))
-                    : MetricFormat.Gigabytes(gpu.MemoryUsed);
-
                 cards.Add(new DeviceCardModel
                 {
                     Title = gpu.Name,
@@ -294,16 +290,43 @@ namespace SidePanelApp.V5
                         },
                         new DeviceMetricRow
                         {
-                            Label = "Память",
-                            Percent = gpu.MemoryPercent,
-                            ValueText = memoryText,
+                            Label = "Выделенная",
+                            Percent = gpu.DedicatedPercent,
+                            ValueText = FormatGpuMemory(gpu.DedicatedUsed, gpu.DedicatedTotal),
                             Accent = Color.FromArgb(232, 168, 255)
+                        },
+                        new DeviceMetricRow
+                        {
+                            Label = "Общая",
+                            Percent = gpu.SharedPercent,
+                            ValueText = FormatGpuMemory(gpu.SharedUsed, gpu.SharedTotal),
+                            Accent = Color.FromArgb(196, 181, 253)
+                        },
+                        new DeviceMetricRow
+                        {
+                            Label = "Всего",
+                            Percent = gpu.MemoryPercent,
+                            ValueText = FormatGpuMemory(gpu.MemoryUsed, gpu.MemoryTotal),
+                            Accent = Color.FromArgb(167, 139, 250)
                         }
                     }
                 });
             }
 
             return cards;
+        }
+
+        private static string FormatGpuMemory(ulong used, ulong total)
+        {
+            if (total > 0)
+            {
+                return string.Format(
+                    "{0} / {1}",
+                    MetricFormat.Gigabytes(used),
+                    MetricFormat.Gigabytes(total));
+            }
+
+            return MetricFormat.Gigabytes(used);
         }
 
         private List<DeviceCardModel> BuildNicCards()

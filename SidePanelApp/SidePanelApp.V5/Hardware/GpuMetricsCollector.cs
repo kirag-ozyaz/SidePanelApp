@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Management;
 using System.Text.RegularExpressions;
+using Microsoft.VisualBasic.Devices;
 using Microsoft.Win32;
 
 namespace SidePanelApp.V5.Hardware
@@ -12,20 +13,26 @@ namespace SidePanelApp.V5.Hardware
         public string Name { get; set; }
         public int PhysIndex { get; set; }
         public double EnginePercent { get; set; }
+        public ulong DedicatedUsed { get; set; }
+        public ulong DedicatedTotal { get; set; }
+        public ulong SharedUsed { get; set; }
+        public ulong SharedTotal { get; set; }
         public ulong MemoryUsed { get; set; }
         public ulong MemoryTotal { get; set; }
 
-        public double MemoryPercent
-        {
-            get
-            {
-                if (MemoryTotal == 0)
-                {
-                    return 0;
-                }
+        public double DedicatedPercent => UsagePercent(DedicatedUsed, DedicatedTotal);
+        public double SharedPercent => UsagePercent(SharedUsed, SharedTotal);
 
-                return Math.Max(0, Math.Min(100, MemoryUsed * 100d / MemoryTotal));
+        public double MemoryPercent => UsagePercent(MemoryUsed, MemoryTotal);
+
+        private static double UsagePercent(ulong used, ulong total)
+        {
+            if (total == 0)
+            {
+                return 0;
             }
+
+            return Math.Max(0, Math.Min(100, used * 100d / total));
         }
     }
 
@@ -45,9 +52,15 @@ namespace SidePanelApp.V5.Hardware
         private readonly List<GpuIdentity> _identities = new List<GpuIdentity>();
         private readonly Dictionary<string, PerformanceCounter> _engineCounters =
             new Dictionary<string, PerformanceCounter>(StringComparer.OrdinalIgnoreCase);
-        private readonly Dictionary<string, PerformanceCounter> _memoryCounters =
+        private readonly Dictionary<string, PerformanceCounter> _dedicatedCounters =
+            new Dictionary<string, PerformanceCounter>(StringComparer.OrdinalIgnoreCase);
+        private readonly Dictionary<string, PerformanceCounter> _sharedCounters =
+            new Dictionary<string, PerformanceCounter>(StringComparer.OrdinalIgnoreCase);
+        private readonly Dictionary<string, PerformanceCounter> _totalCommittedCounters =
             new Dictionary<string, PerformanceCounter>(StringComparer.OrdinalIgnoreCase);
 
+        private readonly ulong _sharedMemoryBudgetBytes;
+        private readonly object _sync = new object();
         private bool _engineAvailable;
         private bool _memoryAvailable;
         private int _tick;
@@ -56,6 +69,7 @@ namespace SidePanelApp.V5.Hardware
         public GpuMetricsCollector()
         {
             _identities.AddRange(ReadGpuIdentities());
+            _sharedMemoryBudgetBytes = ReadSharedMemoryBudgetBytes();
             _engineAvailable = CategoryExists("GPU Engine");
             _memoryAvailable = CategoryExists("GPU Adapter Memory");
             RebuildEngineCounters();
@@ -64,15 +78,31 @@ namespace SidePanelApp.V5.Hardware
 
         public GpuSnapshot[] GetGpus()
         {
+            lock (_sync)
+            {
+                if (_disposed)
+                {
+                    return new GpuSnapshot[0];
+                }
+
+                return GetGpusCore();
+            }
+        }
+
+        private GpuSnapshot[] GetGpusCore()
+        {
             if (_tick++ % 5 == 0)
             {
                 RebuildEngineCounters();
+                RebuildMemoryCounters();
             }
 
             Dictionary<int, double> engineByPhys = ReadEnginePercents();
-            Dictionary<int, ulong> memoryByPhys = ReadDedicatedUsage();
+            Dictionary<int, ulong> dedicatedByPhys = ReadMemoryUsageByPhys(_dedicatedCounters);
+            Dictionary<int, ulong> sharedByPhys = ReadMemoryUsageByPhys(_sharedCounters);
+            Dictionary<int, ulong> totalByPhys = ReadMemoryUsageByPhys(_totalCommittedCounters);
 
-            int fromCounters = MaxKey(engineByPhys, memoryByPhys) + 1;
+            int fromCounters = MaxKey(engineByPhys, dedicatedByPhys, sharedByPhys, totalByPhys) + 1;
             int deviceCount = _identities.Count > 0 ? _identities.Count : fromCounters;
             if (deviceCount <= 0)
             {
@@ -84,12 +114,46 @@ namespace SidePanelApp.V5.Hardware
             {
                 GpuIdentity identity = phys < _identities.Count ? _identities[phys] : null;
                 string name = identity != null ? identity.Name : "Видеокарта " + (phys + 1);
-                ulong total = identity != null ? identity.MemoryTotal : 0;
-                ulong used = 0;
-                memoryByPhys.TryGetValue(phys, out used);
-                if (used > total)
+                ulong dedicatedTotal = identity != null ? identity.MemoryTotal : 0;
+                ulong dedicatedUsed = 0;
+                dedicatedByPhys.TryGetValue(phys, out dedicatedUsed);
+                if (dedicatedUsed > dedicatedTotal)
                 {
-                    total = used;
+                    dedicatedTotal = dedicatedUsed;
+                }
+
+                ulong sharedUsed = 0;
+                sharedByPhys.TryGetValue(phys, out sharedUsed);
+                ulong sharedTotal = _sharedMemoryBudgetBytes;
+                if (sharedUsed > sharedTotal && sharedTotal > 0)
+                {
+                    sharedTotal = sharedUsed;
+                }
+
+                ulong totalUsed = 0;
+                totalByPhys.TryGetValue(phys, out totalUsed);
+                if (totalUsed == 0 && (dedicatedUsed > 0 || sharedUsed > 0))
+                {
+                    totalUsed = dedicatedUsed + sharedUsed;
+                }
+
+                ulong memoryTotal = 0;
+                if (dedicatedTotal > 0 && sharedTotal > 0)
+                {
+                    memoryTotal = dedicatedTotal + sharedTotal;
+                }
+                else if (dedicatedTotal > 0)
+                {
+                    memoryTotal = dedicatedTotal;
+                }
+                else
+                {
+                    memoryTotal = sharedTotal;
+                }
+
+                if (totalUsed > memoryTotal && memoryTotal > 0)
+                {
+                    memoryTotal = totalUsed;
                 }
 
                 double engine = 0;
@@ -100,8 +164,12 @@ namespace SidePanelApp.V5.Hardware
                     Name = name,
                     PhysIndex = phys,
                     EnginePercent = engine,
-                    MemoryUsed = used,
-                    MemoryTotal = total
+                    DedicatedUsed = dedicatedUsed,
+                    DedicatedTotal = dedicatedTotal,
+                    SharedUsed = sharedUsed,
+                    SharedTotal = sharedTotal,
+                    MemoryUsed = totalUsed,
+                    MemoryTotal = memoryTotal
                 });
             }
 
@@ -162,10 +230,11 @@ namespace SidePanelApp.V5.Hardware
             return result;
         }
 
-        private Dictionary<int, ulong> ReadDedicatedUsage()
+        private Dictionary<int, ulong> ReadMemoryUsageByPhys(
+            Dictionary<string, PerformanceCounter> counters)
         {
             var result = new Dictionary<int, ulong>();
-            foreach (KeyValuePair<string, PerformanceCounter> pair in _memoryCounters)
+            foreach (KeyValuePair<string, PerformanceCounter> pair in counters)
             {
                 Match match = MemoryRegex.Match(pair.Key);
                 if (!match.Success)
@@ -184,7 +253,14 @@ namespace SidePanelApp.V5.Hardware
                     continue;
                 }
 
-                result[phys] = (ulong)Math.Max(0, value);
+                ulong usage = (ulong)Math.Max(0, value);
+                ulong current;
+                if (result.TryGetValue(phys, out current))
+                {
+                    usage = Math.Max(current, usage);
+                }
+
+                result[phys] = usage;
             }
 
             return result;
@@ -229,7 +305,23 @@ namespace SidePanelApp.V5.Hardware
                 return;
             }
 
-            SyncCounterMap(_memoryCounters, "GPU Adapter Memory", "Dedicated Usage", names);
+            SyncCounterMap(_dedicatedCounters, "GPU Adapter Memory", "Dedicated Usage", names);
+            SyncCounterMap(_sharedCounters, "GPU Adapter Memory", "Shared Usage", names);
+            SyncCounterMap(_totalCommittedCounters, "GPU Adapter Memory", "Total Committed", names);
+        }
+
+        private static ulong ReadSharedMemoryBudgetBytes()
+        {
+            try
+            {
+                var info = new ComputerInfo();
+                ulong total = info.TotalPhysicalMemory;
+                return total > 0 ? total / 2 : 0;
+            }
+            catch (Exception)
+            {
+                return 0;
+            }
         }
 
         private static void SyncCounterMap(
@@ -413,7 +505,11 @@ namespace SidePanelApp.V5.Hardware
             }
         }
 
-        private static int MaxKey(Dictionary<int, double> engines, Dictionary<int, ulong> memory)
+        private static int MaxKey(
+            Dictionary<int, double> engines,
+            Dictionary<int, ulong> dedicated,
+            Dictionary<int, ulong> shared,
+            Dictionary<int, ulong> total)
         {
             int max = -1;
             foreach (int key in engines.Keys)
@@ -424,7 +520,23 @@ namespace SidePanelApp.V5.Hardware
                 }
             }
 
-            foreach (int key in memory.Keys)
+            foreach (int key in dedicated.Keys)
+            {
+                if (key > max)
+                {
+                    max = key;
+                }
+            }
+
+            foreach (int key in shared.Keys)
+            {
+                if (key > max)
+                {
+                    max = key;
+                }
+            }
+
+            foreach (int key in total.Keys)
             {
                 if (key > max)
                 {
@@ -437,24 +549,36 @@ namespace SidePanelApp.V5.Hardware
 
         public void Dispose()
         {
-            if (_disposed)
+            lock (_sync)
             {
-                return;
-            }
+                if (_disposed)
+                {
+                    return;
+                }
 
-            foreach (PerformanceCounter counter in _engineCounters.Values)
+                _disposed = true;
+
+                foreach (PerformanceCounter counter in _engineCounters.Values)
+                {
+                    counter.Dispose();
+                }
+
+                DisposeCounterMap(_dedicatedCounters);
+                DisposeCounterMap(_sharedCounters);
+                DisposeCounterMap(_totalCommittedCounters);
+
+                _engineCounters.Clear();
+            }
+        }
+
+        private static void DisposeCounterMap(Dictionary<string, PerformanceCounter> map)
+        {
+            foreach (PerformanceCounter counter in map.Values)
             {
                 counter.Dispose();
             }
 
-            foreach (PerformanceCounter counter in _memoryCounters.Values)
-            {
-                counter.Dispose();
-            }
-
-            _engineCounters.Clear();
-            _memoryCounters.Clear();
-            _disposed = true;
+            map.Clear();
         }
 
         private sealed class GpuIdentity
