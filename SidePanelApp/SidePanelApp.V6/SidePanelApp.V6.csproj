@@ -171,6 +171,9 @@
     <Compile Include="OverlayPanelV6.Designer.cs">
       <DependentUpon>OverlayPanelV6.cs</DependentUpon>
     </Compile>
+    <Compile Include="AboutForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="PanelColors.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="TrayAppContext.cs" />

@@ -77,8 +77,18 @@ namespace SidePanelApp.V6.Controls
             get { return _value; }
             set
             {
+                if (double.IsNaN(value) || double.IsInfinity(value))
+                {
+                    value = 0;
+                }
+
                 _value = Math.Max(0, Math.Min(100, value));
                 _displayValue += (_value - _displayValue) * 0.35;
+                if (double.IsNaN(_displayValue) || double.IsInfinity(_displayValue))
+                {
+                    _displayValue = _value;
+                }
+
                 UpdateLabel();
                 Invalidate();
             }
@@ -115,29 +125,61 @@ namespace SidePanelApp.V6.Controls
             int centerX = Width - 2 - RingSize / 2;
             int centerY = 2 + RingSize / 2;
             Rectangle rect = new Rectangle(centerX - RingSize / 2, centerY - RingSize / 2, RingSize, RingSize);
+            if (rect.Width <= 0 || rect.Height <= 0)
+            {
+                return;
+            }
 
             using (Pen backgroundPen = new Pen(PanelColors.RingTrack, RingPenWidth))
             {
-                g.DrawArc(backgroundPen, rect, 0, 360);
+                g.DrawEllipse(backgroundPen, rect);
             }
 
-            float sweepAngle = (float)(_displayValue / 100d * 360d);
-            using (Pen progressPen = new Pen(_ringColor, RingPenWidth))
-            {
-                progressPen.StartCap = LineCap.Round;
-                progressPen.EndCap = LineCap.Round;
-                g.DrawArc(progressPen, rect, -90, sweepAngle);
-            }
+            DrawProgressArc(g, rect);
 
             using (Font iconFont = new Font("Segoe UI", 10F, FontStyle.Bold))
             using (SolidBrush iconBrush = new SolidBrush(_ringColor))
+            using (StringFormat format = new StringFormat
             {
-                StringFormat format = new StringFormat
-                {
-                    Alignment = StringAlignment.Center,
-                    LineAlignment = StringAlignment.Center
-                };
+                Alignment = StringAlignment.Center,
+                LineAlignment = StringAlignment.Center
+            })
+            {
                 g.DrawString(IconText, iconFont, iconBrush, centerX, centerY, format);
+            }
+        }
+
+        /// <summary>
+        /// GDI+ отвечает OutOfMemoryException на DrawArc, если угол 0, полный круг
+        /// или дуга короче штриха при круглых концах пера.
+        /// </summary>
+        private void DrawProgressArc(Graphics g, Rectangle rect)
+        {
+            float sweepAngle = (float)(_displayValue / 100d * 360d);
+            if (!(sweepAngle > 0.1f))
+            {
+                return;
+            }
+
+            using (Pen progressPen = new Pen(_ringColor, RingPenWidth))
+            {
+                if (sweepAngle >= 359.9f)
+                {
+                    g.DrawEllipse(progressPen, rect);
+                    return;
+                }
+
+                float radius = rect.Width / 2f;
+                float minSweepForCaps = radius > 0f
+                    ? (float)(RingPenWidth / radius * (180.0 / Math.PI)) * 1.25f
+                    : 360f;
+                if (sweepAngle > minSweepForCaps)
+                {
+                    progressPen.StartCap = LineCap.Round;
+                    progressPen.EndCap = LineCap.Round;
+                }
+
+                g.DrawArc(progressPen, rect, -90, sweepAngle);
             }
         }
 

@@ -46,6 +46,7 @@ namespace SidePanelApp.V6
             _trayMenu.Items.Add(_allowMoveItem);
             _trayMenu.Items.Add(new ToolStripSeparator());
             _trayMenu.Items.Add("Соединения (TCP/UDP)…", null, OnConnectionsClick);
+            _trayMenu.Items.Add("О программе…", null, OnAboutClick);
             _trayMenu.Items.Add(new ToolStripSeparator());
             _trayMenu.Items.Add("Выход", null, OnExit);
 
@@ -197,6 +198,14 @@ namespace SidePanelApp.V6
         private void OnConnectionsClick(object sender, EventArgs e)
         {
             ConnectionsWindowHost.ShowOrActivate(null);
+        }
+
+        private void OnAboutClick(object sender, EventArgs e)
+        {
+            IWin32Window owner = _overlayPanel != null && !_overlayPanel.IsDisposed && _overlayPanel.Visible
+                ? _overlayPanel
+                : null;
+            AboutForm.ShowAbout(owner);
         }
 
         private void ApplyAllowMove()

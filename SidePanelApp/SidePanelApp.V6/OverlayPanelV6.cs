@@ -75,6 +75,9 @@ namespace SidePanelApp.V6
 
             _threatService = threatService;
             InitializeComponent();
+            ToolStripMenuItem menuAbout = new ToolStripMenuItem("О программе…");
+            menuAbout.Click += (s, e) => AboutForm.ShowAbout(this);
+            contextMenu.Items.Add(menuAbout);
             UseWaitCursor = false;
             Icon = AppIconFactory.GetApplicationIcon(32);
             ApplyTheme();
